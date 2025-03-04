@@ -1,16 +1,17 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using System.Data.Common;
+using Microsoft.Data.SqlClient;
 
 namespace Keel.Infra.SqlServer.Context;
 
 public class DbSharedContext(
-    SqlConnection connection,
-    SqlTransaction? transaction,
+    DbConnection connection,
+    DbTransaction? transaction,
     bool dedicated) : IDisposable
 {
-    public SqlConnection Connection => connection;
-    public SqlTransaction? Transaction => transaction;
+    public DbConnection Connection => connection;
+    public DbTransaction? Transaction => transaction;
 
-    public SqlCommand CreateCommand()
+    public DbCommand CreateCommand()
     {
         if (dedicated)
         {

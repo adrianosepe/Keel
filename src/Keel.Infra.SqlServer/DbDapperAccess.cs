@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Data.Common;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Keel.Infra.SqlServer.Context;
@@ -139,7 +140,7 @@ public class DbDapperAccessBuilder
         return this;
     }
 
-    public CommandDefinition Build(SqlTransaction? transaction, CancellationToken cancellationToken)
+    public CommandDefinition Build(DbTransaction? transaction, CancellationToken cancellationToken)
     {
         return new CommandDefinition(
             _commandText,

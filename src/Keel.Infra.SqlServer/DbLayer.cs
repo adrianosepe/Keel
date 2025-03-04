@@ -33,20 +33,20 @@ public abstract class DbLayer : IDbSharedContextProvider, IDbLayer
 
     async Task<DbSharedContext> IDbSharedContextProvider.GetContextAsync()
     {
-        var connection = Orm.Database.GetDbConnection().CastTo<SqlConnection>();
-        var transaction = Orm.Database.CurrentTransaction?.GetDbTransaction().CastTo<SqlTransaction?>();
+        var connection = Orm.Database.GetDbConnection();
+        var transaction = Orm.Database.CurrentTransaction?.GetDbTransaction();
 
         await connection.OpenAsync();
 
         return new DbSharedContext(
-            connection.CastTo<SqlConnection>(),
-            transaction?.CastTo<SqlTransaction?>(),
+            connection,
+            transaction,
             false);
     }
 
     async Task<DbCommand> IDbSharedContextProvider.GetCommandAsync()
     {
-        var connection = Orm.Database.GetDbConnection().CastTo<SqlConnection>();
+        var connection = Orm.Database.GetDbConnection();
 
         await connection.OpenAsync();
 
