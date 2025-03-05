@@ -2,7 +2,7 @@
 using JetBrains.Annotations;
 using Microsoft.Data.SqlClient;
 
-namespace Keel.Infra.SqlServer;
+namespace Keel.Infra.Db.Access;
 
 [UsedImplicitly]
 public class DbDirectAccessBuilder(SqlCommand command)

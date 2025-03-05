@@ -2,12 +2,12 @@
 using System.Data.Common;
 using DotNetAppBase.Std.Db.Work;
 using DotNetAppBase.Std.Exceptions.Bussines;
-using Keel.Infra.SqlServer.Context;
+using Keel.Infra.Db.Access.Context;
 using Microsoft.Data.SqlClient;
 
 // ReSharper disable UnusedMember.Global
 
-namespace Keel.Infra.SqlServer;
+namespace Keel.Infra.Db.Access;
 
 public class DbDirectAccess(IDbSharedContextProvider provider)
 {
@@ -145,15 +145,15 @@ public class DbDirectAccess(IDbSharedContextProvider provider)
         await Task.Run(() => adapter.Fill(set), cancellationToken);
 
         return builder.Mode switch
-            {
-                DbDirectAccessBuilder.EExecMode.DataRow when set.Tables.Count < 1 || set.Tables[0].Rows.Count < 1 =>
-                    throw XFlowException.Create("Query don't return valida result"),
-                DbDirectAccessBuilder.EExecMode.DataRow => (TResult)(object)set.Tables[0].Rows[0],
-                DbDirectAccessBuilder.EExecMode.DataTable when set.Tables.Count < 1 => throw XFlowException.Create(
-                    "Query don't return valida result"),
-                DbDirectAccessBuilder.EExecMode.DataTable => (TResult)(object)set.Tables[0],
-                _ => (TResult)(object)set,
-            };
+        {
+            DbDirectAccessBuilder.EExecMode.DataRow when set.Tables.Count < 1 || set.Tables[0].Rows.Count < 1 =>
+                throw XFlowException.Create("Query don't return valida result"),
+            DbDirectAccessBuilder.EExecMode.DataRow => (TResult)(object)set.Tables[0].Rows[0],
+            DbDirectAccessBuilder.EExecMode.DataTable when set.Tables.Count < 1 => throw XFlowException.Create(
+                "Query don't return valida result"),
+            DbDirectAccessBuilder.EExecMode.DataTable => (TResult)(object)set.Tables[0],
+            _ => (TResult)(object)set,
+        };
     }
 
     public async Task<TResult> NonQueryAsync<TResult>(Action<DbDirectAccessBuilder> config, CancellationToken cancellationToken = default)

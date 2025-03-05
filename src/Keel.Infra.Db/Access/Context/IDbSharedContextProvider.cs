@@ -1,6 +1,6 @@
 ﻿using System.Data.Common;
 
-namespace Keel.Infra.SqlServer.Context;
+namespace Keel.Infra.Db.Access.Context;
 
 public interface IDbSharedContextProvider
 {

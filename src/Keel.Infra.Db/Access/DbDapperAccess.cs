@@ -1,12 +1,12 @@
 ﻿using System.Data;
 using System.Data.Common;
 using Dapper;
-using Microsoft.Data.SqlClient;
-using Keel.Infra.SqlServer.Context;
+using Keel.Infra.Db.Access.Context;
+
 
 // ReSharper disable UnusedMember.Global
 
-namespace Keel.Infra.SqlServer;
+namespace Keel.Infra.Db.Access;
 
 public class DbDapperAccess(IDbSharedContextProvider sharedConnectionProvider)
 {
@@ -16,9 +16,9 @@ public class DbDapperAccess(IDbSharedContextProvider sharedConnectionProvider)
         var conn = ctx.Connection;
 
         return conn.QueryFirstOrDefault<T>(
-            sql, 
-            param, 
-            commandType: CommandType.Text, 
+            sql,
+            param,
+            commandType: CommandType.Text,
             transaction: ctx.Transaction);
     }
     public async Task<T?> ReadOneSpAsync<T>(string sql, object? param = null)
@@ -27,9 +27,9 @@ public class DbDapperAccess(IDbSharedContextProvider sharedConnectionProvider)
         var conn = ctx.Connection;
 
         return conn.QueryFirstOrDefault<T>(
-            sql, 
-            param, 
-            commandType: CommandType.StoredProcedure, 
+            sql,
+            param,
+            commandType: CommandType.StoredProcedure,
             transaction: ctx.Transaction);
     }
 
@@ -40,7 +40,7 @@ public class DbDapperAccess(IDbSharedContextProvider sharedConnectionProvider)
 
         return conn.Query<T>(sql, param, commandType: CommandType.Text, transaction: ctx.Transaction);
     }
-    
+
     public async Task<IEnumerable<T>> ReadSpAsync<T>(string sql, object? param = null)
     {
         using var ctx = await sharedConnectionProvider.GetContextAsync();
@@ -55,9 +55,9 @@ public class DbDapperAccess(IDbSharedContextProvider sharedConnectionProvider)
         var conn = ctx.Connection;
 
         return await conn.QueryAsync<T>(
-            sql, 
-            param, 
-            commandType: CommandType.StoredProcedure, 
+            sql,
+            param,
+            commandType: CommandType.StoredProcedure,
             transaction: ctx.Transaction,
             commandTimeout: commandTimeout);
     }

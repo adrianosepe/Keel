@@ -1,7 +1,6 @@
 ﻿using System.Data.Common;
-using Microsoft.Data.SqlClient;
 
-namespace Keel.Infra.SqlServer.Context;
+namespace Keel.Infra.Db.Access.Context;
 
 public class DbSharedContext(
     DbConnection connection,

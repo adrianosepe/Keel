@@ -1,14 +1,13 @@
 ﻿using System.Data.Common;
-using Keel.Infra.SqlServer.Context;
-using Microsoft.Data.SqlClient;
+using Keel.Infra.Db.Access.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
 // ReSharper disable UnusedMember.Global
 
-namespace Keel.Infra.SqlServer;
+namespace Keel.Infra.Db.Access;
 
-public abstract class DbLayer : IDbSharedContextProvider, IDbLayer
+public abstract class DbLayer : IDbLayer, IDbSharedContextProvider
 {
     private readonly Lazy<DbContext> _lazyOrm;
     private readonly Lazy<DbDirectAccess> _lazyAdo;
@@ -28,6 +27,16 @@ public abstract class DbLayer : IDbSharedContextProvider, IDbLayer
     public DbContext Orm => _lazyOrm.Value;
     public DbDirectAccess Ado => _lazyAdo.Value;
     public DbDapperAccess Dapper => _lazyDapper.Value;
+
+    public async Task<DbConnection> GetConnectionAsync()
+    {
+        var context = await this
+            .CastTo<IDbSharedContextProvider>()
+            .GetContextAsync()
+            .ConfigureAwait(false);
+
+        return context.Connection;
+    }
 
     protected abstract DbContext InternalCreateDbContext();
 
