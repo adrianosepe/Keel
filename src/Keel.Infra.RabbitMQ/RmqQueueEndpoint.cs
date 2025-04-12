@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-
-namespace Keel.Infra.RabbitMQ;
+﻿namespace Keel.Infra.RabbitMQ;
 
 public class RmqQueueEndpoint
 {

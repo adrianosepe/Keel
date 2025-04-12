@@ -12,71 +12,79 @@ public class DbDapperAccess(IDbSharedContextProvider sharedConnectionProvider)
 {
     public async Task<T?> ReadOneAsync<T>(string sql, object? param = null)
     {
-        using var ctx = await sharedConnectionProvider.GetContextAsync();
-        var conn = ctx.Connection;
+        using var context = await sharedConnectionProvider.GetContextAsync();
+        var connection = context.Connection;
 
-        return conn.QueryFirstOrDefault<T>(
-            sql,
-            param,
-            commandType: CommandType.Text,
-            transaction: ctx.Transaction);
+        return connection
+            .QueryFirstOrDefault<T>(
+                sql,
+                param,
+                commandType: CommandType.Text,
+                transaction: context.Transaction);
     }
     public async Task<T?> ReadOneSpAsync<T>(string sql, object? param = null)
     {
-        using var ctx = await sharedConnectionProvider.GetContextAsync();
-        var conn = ctx.Connection;
+        using var context = await sharedConnectionProvider.GetContextAsync();
+        var connection = context.Connection;
 
-        return conn.QueryFirstOrDefault<T>(
+        return connection.QueryFirstOrDefault<T>(
             sql,
             param,
             commandType: CommandType.StoredProcedure,
-            transaction: ctx.Transaction);
+            transaction: context.Transaction);
     }
 
     public async Task<IEnumerable<T>> ReadAsync<T>(string sql, object? param = null)
     {
-        using var ctx = await sharedConnectionProvider.GetContextAsync();
-        var conn = ctx.Connection;
+        using var context = await sharedConnectionProvider.GetContextAsync();
+        var connection = context.Connection;
 
-        return conn.Query<T>(sql, param, commandType: CommandType.Text, transaction: ctx.Transaction);
+        return connection.Query<T>(
+            sql, 
+            param, 
+            commandType: CommandType.Text, 
+            transaction: context.Transaction);
     }
 
     public async Task<IEnumerable<T>> ReadSpAsync<T>(string sql, object? param = null)
     {
-        using var ctx = await sharedConnectionProvider.GetContextAsync();
-        var conn = ctx.Connection;
+        using var context = await sharedConnectionProvider.GetContextAsync();
+        var connection = context.Connection;
 
-        return await conn.QueryAsync<T>(
-            sql, param, commandType: CommandType.StoredProcedure, transaction: ctx.Transaction);
+        return await connection.QueryAsync<T>(
+            sql, 
+            param, 
+            commandType: CommandType.StoredProcedure, 
+            transaction: context.Transaction);
     }
     public async Task<IEnumerable<T>> ReadSpAsync<T>(string sql, int commandTimeout, object? param = null)
     {
-        using var ctx = await sharedConnectionProvider.GetContextAsync();
-        var conn = ctx.Connection;
+        using var context = await sharedConnectionProvider.GetContextAsync();
+        var connection = context.Connection;
 
-        return await conn.QueryAsync<T>(
+        return await connection.QueryAsync<T>(
             sql,
             param,
             commandType: CommandType.StoredProcedure,
-            transaction: ctx.Transaction,
+            transaction: context.Transaction,
             commandTimeout: commandTimeout);
     }
 
     public async Task<IEnumerable<TResult>> QueryAsync<TResult>(Action<DbDapperAccessBuilder> config, CancellationToken cancellationToken = default)
     {
-        using var ctx = await sharedConnectionProvider.GetContextAsync();
-        var conn = ctx.Connection;
+        using var context = await sharedConnectionProvider.GetContextAsync();
+        var connection = context.Connection;
 
         var builder = new DbDapperAccessBuilder();
 
         config(builder);
 
-        if (conn.State != ConnectionState.Open)
+        if (connection.State != ConnectionState.Open)
         {
-            await conn.OpenAsync(cancellationToken);
+            await connection.OpenAsync(cancellationToken);
         }
 
-        return await conn.QueryAsync<TResult>(builder.Build(ctx.Transaction, cancellationToken));
+        return await connection.QueryAsync<TResult>(builder.Build(context.Transaction, cancellationToken));
     }
 }
 

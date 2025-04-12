@@ -236,7 +236,7 @@ public abstract class DbEntityService<TEntity> : DbEntityService where TEntity :
         var dbCtx = Db.Orm;
         var inTransaction = dbCtx.Database.CurrentTransaction != null;
 
-        IDbContextTransaction transaction = null;
+        IDbContextTransaction? transaction = null;
         if (!inTransaction)
         {
             transaction = await dbCtx.Database.BeginTransactionAsync();
@@ -246,13 +246,13 @@ public abstract class DbEntityService<TEntity> : DbEntityService where TEntity :
         {
             var result = await action(dbCtx);
 
-            transaction?.Commit();
+            await (transaction?.CommitAsync() ?? Task.CompletedTask);
 
             return result;
         }
         catch (Exception ex)
         {
-            transaction?.Rollback();
+            await (transaction?.RollbackAsync() ?? Task.CompletedTask);
 
             XDebug.OnException(ex);
 
@@ -268,7 +268,7 @@ public abstract class DbEntityService<TEntity> : DbEntityService where TEntity :
         var dbCtx = Db.Orm;
         var inTransaction = dbCtx.Database.CurrentTransaction != null;
 
-        IDbContextTransaction transaction = null;
+        IDbContextTransaction? transaction = null;
         if (!inTransaction)
         {
             transaction = await dbCtx.Database.BeginTransactionAsync();
@@ -282,7 +282,7 @@ public abstract class DbEntityService<TEntity> : DbEntityService where TEntity :
         }
         catch (Exception ex)
         {
-            transaction?.Rollback();
+            await (transaction?.RollbackAsync() ?? Task.CompletedTask);
 
             XDebug.OnException(ex);
 
@@ -318,10 +318,10 @@ public abstract class DbEntityService<TEntity> : DbEntityService where TEntity :
     protected virtual Task InternalExecuteUpdating(TEntity entity) => Task.CompletedTask;
     protected virtual Task InternalExecuteDeletion(TEntity entity) => Task.CompletedTask;
 
-    protected virtual Task InternalAfterDbAction(TEntity entity, EntityValidationResult validationResult, Func<TEntity, EntityValidationResult, Task> customAction) => customAction?.Invoke(entity, validationResult) ?? Task.CompletedTask;
-    protected virtual Task InternalExecuteAfterInsert(TEntity entity, EntityValidationResult actionValidationResult) => null;
-    protected virtual Task InternalExecuteAfterUpdate(TEntity entity, EntityValidationResult actionValidationResult) => null;
-    protected virtual Task InternalExecuteAfterDelete(TEntity entity, EntityValidationResult actionValidationResult) => null;
+    protected virtual Task InternalAfterDbAction(TEntity entity, EntityValidationResult validationResult, Func<TEntity, EntityValidationResult, Task?> customAction) => customAction?.Invoke(entity, validationResult) ?? Task.CompletedTask;
+    protected virtual Task? InternalExecuteAfterInsert(TEntity entity, EntityValidationResult actionValidationResult) => null;
+    protected virtual Task? InternalExecuteAfterUpdate(TEntity entity, EntityValidationResult actionValidationResult) => null;
+    protected virtual Task? InternalExecuteAfterDelete(TEntity entity, EntityValidationResult actionValidationResult) => null;
 
     protected EntityValidationResult InternalValidateEntity(TEntity entity, EServiceActionType? actionType, Action<bool> customValidationsAction)
     {
@@ -351,7 +351,7 @@ public abstract class DbEntityService<TEntity> : DbEntityService where TEntity :
     
     protected virtual Task InternalInDbAction(TEntity entity, Func<TEntity, Task> customAction) => customAction?.Invoke(entity) ?? Task.CompletedTask;
     protected virtual void InternalInitializeNewEntity(TEntity @new) { }
-    protected virtual IEnumerable<Expression<Func<TEntity, IEnumerable>>> InternalIdentityDetailEntities() => Array.Empty<Expression<Func<TEntity, IEnumerable>>>();
+    protected virtual IEnumerable<Expression<Func<TEntity?, IEnumerable>>> InternalIdentityDetailEntities() => Array.Empty<Expression<Func<TEntity?, IEnumerable>>>();
 
     protected virtual Action<TEntity> GetRepositoryAction(EServiceActionType actionType)
     {
@@ -401,6 +401,10 @@ public abstract class DbEntityService<TEntity> : DbEntityService where TEntity :
         }
 
         var dbEntity = await GetQuery().FirstOrDefaultAsync(e => e.ID == memEntity.ID);
+        if (dbEntity == null)
+        {
+            return;
+        }
 
         foreach (var mGet in detailEntities)
         {

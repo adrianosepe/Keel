@@ -1,4 +1,5 @@
-﻿using System.Data.Common;
+﻿using System.Data;
+using System.Data.Common;
 using Keel.Infra.Db.Access.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -42,10 +43,13 @@ public abstract class DbLayer : IDbLayer, IDbSharedContextProvider
 
     async Task<DbSharedContext> IDbSharedContextProvider.GetContextAsync()
     {
-        var connection = Orm.Database.GetDbConnection();
         var transaction = Orm.Database.CurrentTransaction?.GetDbTransaction();
 
-        await connection.OpenAsync();
+        var connection = Orm.Database.GetDbConnection();
+        if (connection.State != ConnectionState.Open)
+        {
+            await connection.OpenAsync();
+        }
 
         return new DbSharedContext(
             connection,
@@ -56,15 +60,17 @@ public abstract class DbLayer : IDbLayer, IDbSharedContextProvider
     async Task<DbCommand> IDbSharedContextProvider.GetCommandAsync()
     {
         var connection = Orm.Database.GetDbConnection();
-
-        await connection.OpenAsync();
+        if (connection.State != ConnectionState.Open)
+        {
+            await connection.OpenAsync();
+        }
 
         return connection.CreateCommand();
     }
 }
 
 public class DbLayer<TDbContext>(TDbContext context) : DbLayer, IDbLayer<TDbContext>
-    where TDbContext : DbContext, new()
+    where TDbContext : DbContext
 {
     public new TDbContext Orm => context;
 

@@ -7,6 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+	<None Include=".StaticDependency\DevExtreme.AspNet.Core.dll" />
+
+	<Reference Include="DevExtreme.AspNet.Core">
+	  <HintPath>.StaticDependency\DevExtreme.AspNet.Core.dll</HintPath>
+	</Reference>
+
+	<PackageReference Include="DevExtreme.AspNet.Data" Version="4.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
 	<PackageReference Include="Microsoft.AspNetCore.Mvc.Abstractions" Version="2.3.0" />
 	<PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.3.0" />
 	<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.2" />
@@ -14,6 +24,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Keel.Domain.CleanCode\Keel.Domain.CleanCode.csproj" />
+    <ProjectReference Include="..\Keel.Infra.Db\Keel.Infra.Db.csproj" />
   </ItemGroup>
 
 </Project>
