@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections;
-using System.Linq;
+﻿using System.Collections;
 using System.Linq.Expressions;
 using DotNetAppBase.Std.Exceptions.Assert;
-using DotNetAppBase.Std.Exceptions.Base;
-using DotNetAppBase.Std.Exceptions.Bussines;
 using DotNetAppBase.Std.Library.ComponentModel.Model.Business;
 using DotNetAppBase.Std.Library.ComponentModel.Model.Business.Enums;
 using DotNetAppBase.Std.Library.ComponentModel.Model.Svc;
@@ -15,72 +11,32 @@ using Keel.Infra.Db.Access;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
-namespace Keel.Infra.Db.Services;
+namespace Keel.Infra.Db.Orm.Services;
 
-public abstract class DbEntityService
+public abstract class DbEntityRepository(IDbLayer dbLayer)
 {
-    private readonly IDbLayer _dbLayer;
-
-    protected DbEntityService(IDbLayer dbLayer)
-    {
-        _dbLayer = dbLayer;
-    }
-
-    public IDbLayer Db => _dbLayer;
-
-    protected TypedResult<TArg> SecureExecute<TArg>(Func<TypedResult<TArg>> funcTask)
-    {
-        try
-        {
-            return funcTask();
-        }
-        catch (Exception e)
-        {
-            return TypedResult<TArg>.Exception(XException.IsOne(e, out var xEx) ? xEx : e);
-        }
-    }
-
-    protected async Task<TypedResult<TArg>> SecureExecute<TArg>(Func<Task<TypedResult<TArg>>> funcTask)
-    {
-        try
-        {
-            return await funcTask();
-        }
-        catch (Exception e)
-        {
-            return TypedResult<TArg>.Exception(XException.IsOne(e, out var xEx) ? xEx : e);
-        }
-    }
+    protected IDbLayer Db => dbLayer;
+    protected DbContext Orm => dbLayer.Orm;
 }
 
-public abstract class DbEntityService<TEntity> : DbEntityService where TEntity : class, IEntity, new()
+public abstract class DbEntityRepository<TEntity> : DbEntityRepository where TEntity : class, IEntity, new()
 {
-    [UsedImplicitly] 
-    public static ServiceResponse<TEntity> NotFound { get; } = new(entity: null!, "Entidade indisponível!");
-
     private readonly Lazy<DbSet<TEntity>> _lazyDbSet;
 
-    protected DbEntityService(IDbLayer dbLayer) : base(dbLayer)
+    protected DbEntityRepository(IDbLayer dbLayer) : base(dbLayer)
     {
         _lazyDbSet = new Lazy<DbSet<TEntity>>(
             () => Db.Orm.Set<TEntity>());
-
-        ValidationHelper = new EntityValidationHelper<TEntity>();
     }
 
     [UsedImplicitly] 
     public string EntityName => nameof(TEntity);
 
-    public bool ReadOnly { get; set; }
+    protected DbSet<TEntity> Set => _lazyDbSet.Value;
 
-    public DbSet<TEntity> Set => _lazyDbSet.Value;
-
-    protected EntityValidationHelper<TEntity> ValidationHelper { get; }
-
-    public virtual IQueryable<TEntity> GetDirectQuery() => Set;
-    public virtual IQueryable<TEntity> GetQuery() => GetDirectQuery();
-    public virtual IQueryable<TEntity> GetToComposeQuery() => GetDirectQuery();
-
+    protected virtual IQueryable<TEntity> GetDirectQuery() => Set;
+    protected virtual IQueryable<TEntity> GetQuery() => GetDirectQuery();
+    
     protected TypedResult<TEntity> Success(string reason) => TypedResult<TEntity>.Success(reason);
     protected TypedResult<TEntity> Success(TEntity entity, string? reason = null) => TypedResult<TEntity>.Success(entity, reason);
     protected TypedResult<TEntity> Error(string reason) => TypedResult<TEntity>.Error(reason);
@@ -103,19 +59,20 @@ public abstract class DbEntityService<TEntity> : DbEntityService where TEntity :
                     return @new;
                 });
     }
-    public virtual async Task<ServiceResponse<TEntity>> InsertAsync(TEntity entity) => await ExecuteDefaultDbAction(entity, EServiceActionType.Insert);
-    public virtual async Task<ServiceResponse<TEntity>> UpdateAsync(TEntity entity)
+    public virtual Task<ServiceResponse<TEntity>> InsertAsync(TEntity entity, CancellationToken cancellationToken) => ExecuteDefaultDbAction(entity, EServiceActionType.Insert, cancellationToken);
+    public virtual async Task<ServiceResponse<TEntity>> UpdateAsync(TEntity entity, CancellationToken cancellationToken)
     {
         await RemoveDetailEntitiesOnUpdate(entity);
 
-        return await ExecuteDefaultDbAction(entity, EServiceActionType.Update);
+        return await ExecuteDefaultDbAction(entity, EServiceActionType.Update, cancellationToken);
     }
-    public virtual async Task<ServiceResponse<TEntity>> DeleteAsync(TEntity entity) => await ExecuteDefaultDbAction(entity, EServiceActionType.Delete);
+    public virtual Task<ServiceResponse<TEntity>> DeleteAsync(TEntity entity, CancellationToken cancellationToken) => ExecuteDefaultDbAction(entity, EServiceActionType.Delete, cancellationToken);
 
-    protected Task DirectDbAction(EServiceActionType actionType, TEntity entity) => ExecuteInTransactionContext(entity, actionType, () => GetRepositoryAction(actionType)(entity));
-    protected Task DirectDbDelete(TEntity entity) => DirectDbAction(EServiceActionType.Delete, entity);
-    protected Task DirectDbInsert(TEntity entity) => DirectDbAction(EServiceActionType.Insert, entity);
-    protected Task DirectDbUpdate(TEntity entity) => DirectDbAction(EServiceActionType.Update, entity);
+    protected Task DirectDbAction(
+        EServiceActionType actionType, TEntity entity, CancellationToken cancellationToken) => ExecuteInTransactionContext(entity, actionType, () => GetRepositoryAction(actionType)(entity), cancellationToken);
+    protected Task DirectDbDelete(TEntity entity, CancellationToken cancellationToken) => DirectDbAction(EServiceActionType.Delete, entity, cancellationToken);
+    protected Task DirectDbInsert(TEntity entity, CancellationToken cancellationToken) => DirectDbAction(EServiceActionType.Insert, entity, cancellationToken);
+    protected Task DirectDbUpdate(TEntity entity, CancellationToken cancellationToken) => DirectDbAction(EServiceActionType.Update, entity, cancellationToken);
 
     protected virtual void ExecuteBeforeDbAction(TEntity entity, EServiceActionType actionType)
     {
@@ -149,18 +106,17 @@ public abstract class DbEntityService<TEntity> : DbEntityService where TEntity :
     protected virtual void ExecuteBeforeUpdate(TEntity entity) => InternalBeforeDbAction(entity, EServiceActionType.Update, InternalExecuteBeforeUpdate);
     protected virtual void ExecuteBeforeDelete(TEntity entity) => InternalBeforeDbAction(entity, EServiceActionType.Delete, InternalExecuteBeforeDelete);
 
-    protected virtual async Task<ServiceResponse<TEntity>> ExecuteDefaultDbAction(TEntity entity, EServiceActionType actionType)
+    protected virtual async Task<ServiceResponse<TEntity>> ExecuteDefaultDbAction(TEntity entity, EServiceActionType actionType, CancellationToken cancellationToken)
     {
-        CheckReadOnlyAndThrowException(actionType.ToString());
-
         ExecuteBeforeDbAction(entity, actionType);
 
-        var validationResult = ExecuteValidations(entity, actionType);
-        if (!validationResult.HasViolations)
-        {
-            await ExecuteInTransactionContext(entity, actionType, () => GetRepositoryAction(actionType)(entity));
-        }
+        await ExecuteInTransactionContext(
+            entity, 
+            actionType,
+            () => GetRepositoryAction(actionType)(entity),
+            cancellationToken);
 
+        var validationResult = new EntityValidationResult();
         var response = new ServiceResponse<TEntity>(entity, validationResult);
 
         await ExecuteAfterDbAction(entity, actionType, validationResult);
@@ -215,21 +171,6 @@ public abstract class DbEntityService<TEntity> : DbEntityService where TEntity :
     protected virtual Task ExecuteAfterInsert(TEntity entity, EntityValidationResult validationResult) => InternalAfterDbAction(entity, validationResult, InternalExecuteAfterInsert);
     protected virtual Task ExecuteAfterUpdate(TEntity entity, EntityValidationResult validationResult) => InternalAfterDbAction(entity, validationResult, InternalExecuteAfterUpdate);
     protected virtual Task ExecuteAfterDelete(TEntity entity, EntityValidationResult validationResult) => InternalAfterDbAction(entity, validationResult, InternalExecuteAfterDelete);
-
-    protected EntityValidationResult ExecuteValidations(TEntity entity, EServiceActionType actionType)
-    {
-        return actionType switch
-            {
-                EServiceActionType.Insert => ExecuteInsertValidations(entity),
-                EServiceActionType.Update => ExecuteUpdateValidations(entity),
-                EServiceActionType.Delete => ExecuteDeleteValidations(entity),
-
-                _ => throw new ArgumentOutOfRangeException(nameof(actionType)),
-            };
-    }
-    protected virtual EntityValidationResult ExecuteInsertValidations(TEntity entity) => InternalValidateEntity(entity, EServiceActionType.Insert, InternalExecuteCustomInsertValidation);
-    protected virtual EntityValidationResult ExecuteUpdateValidations(TEntity entity) => InternalValidateEntity(entity, EServiceActionType.Update, InternalExecuteCustomUpdateValidation);
-    protected virtual EntityValidationResult ExecuteDeleteValidations(TEntity entity) => InternalValidateEntity(entity, EServiceActionType.Delete, InternalExecuteCustomDeleteValidation);
 
     protected async Task<TResult> ExecuteInTransactionContext<TResult>(Func<DbContext, Task<TResult>> action)
     {
@@ -293,14 +234,14 @@ public abstract class DbEntityService<TEntity> : DbEntityService where TEntity :
             transaction?.Dispose();
         }
     }
-    protected async Task ExecuteInTransactionContext(TEntity entity, EServiceActionType actionType, Action actionBeforeSave)
+    protected async Task ExecuteInTransactionContext(TEntity entity, EServiceActionType actionType, Action actionBeforeSave, CancellationToken cancellationToken)
     {
         await ExecuteInTransactionContext(
-            async (dbCtx) =>
+            async dbCtx =>
             {
                 actionBeforeSave();
 
-                await dbCtx.SaveChangesAsync();
+                await dbCtx.SaveChangesAsync(cancellationToken);
 
                 await ExecuteInDbAction(entity, actionType);
             });
@@ -323,32 +264,6 @@ public abstract class DbEntityService<TEntity> : DbEntityService where TEntity :
     protected virtual Task? InternalExecuteAfterUpdate(TEntity entity, EntityValidationResult actionValidationResult) => null;
     protected virtual Task? InternalExecuteAfterDelete(TEntity entity, EntityValidationResult actionValidationResult) => null;
 
-    protected EntityValidationResult InternalValidateEntity(TEntity entity, EServiceActionType? actionType, Action<bool> customValidationsAction)
-    {
-        ValidationHelper.Begin(entity);
-
-        if (actionType != EServiceActionType.Delete)
-        {
-            EntityValidator.Validate(entity, ValidationHelper.Validations);
-        }
-
-        if (!ValidationHelper.HasViolations)
-        {
-            if (actionType != null)
-            {
-                InternalExecuteCustomValidation(ValidationHelper.HasViolations, actionType.Value);
-            }
-
-            customValidationsAction?.Invoke(ValidationHelper.HasViolations);
-        }
-
-        return ValidationHelper.End();
-    }
-    protected virtual void InternalExecuteCustomValidation(bool hasValidation, EServiceActionType actionType) { }
-    protected virtual void InternalExecuteCustomInsertValidation(bool hasValidation) { }
-    protected virtual void InternalExecuteCustomUpdateValidation(bool hasValidation) { }
-    protected virtual void InternalExecuteCustomDeleteValidation(bool hasValidation) { }
-    
     protected virtual Task InternalInDbAction(TEntity entity, Func<TEntity, Task> customAction) => customAction?.Invoke(entity) ?? Task.CompletedTask;
     protected virtual void InternalInitializeNewEntity(TEntity @new) { }
     protected virtual IEnumerable<Expression<Func<TEntity?, IEnumerable>>> InternalIdentityDetailEntities() => Array.Empty<Expression<Func<TEntity?, IEnumerable>>>();
@@ -383,15 +298,6 @@ public abstract class DbEntityService<TEntity> : DbEntityService where TEntity :
         }
     }
 
-    private void CheckReadOnlyAndThrowException(string actionName)
-    {
-        if (!ReadOnly)
-        {
-            return;
-        }
-
-        throw XFlowException.Create($"This service {GetType().Name} was configured as ReadOnly, the action '{actionName}' can't be called directly.");
-    }
     private async Task RemoveDetailEntitiesOnUpdate(TEntity memEntity)
     {
         var detailEntities = InternalIdentityDetailEntities().Select(exp => exp.Compile()).ToArray();
