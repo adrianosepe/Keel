@@ -1,5 +1,4 @@
 ﻿using Keel.Infra.Db.Access;
-using Keel.Infra.Db.Services;
 using System;
 using System.Linq;
 using DevExtreme.AspNet.Data;
@@ -7,6 +6,7 @@ using DevExtreme.AspNet.Data.ResponseModel;
 using DevExtreme.AspNet.Mvc;
 using DotNetAppBase.Std.Library.ComponentModel.Model.Business;
 using DotNetAppBase.Std.Library.ComponentModel.Model.Svc;
+using Keel.Infra.Db.Orm.Services;
 using Microsoft.EntityFrameworkCore;
 
 // ReSharper disable UnusedMember.Global

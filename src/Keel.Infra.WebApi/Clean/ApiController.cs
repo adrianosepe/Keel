@@ -13,7 +13,21 @@ public class ApiController : ControllerBase
         return result switch
         {
             DataResult dataResult => StatusCode(dataResult.Code, dataResult.Data),
-            ErrorResult errorResult => StatusCode(errorResult.Code, errorResult.Error),
+            ValidationErrorResult validationErrorResult => StatusCode(
+                validationErrorResult.Code,
+                new
+                {
+                    Error = validationErrorResult.Message,
+                    Flag = validationErrorResult.Flag,
+                    Errors = validationErrorResult.ValidationErrors,
+                }),
+            ErrorResult errorResult => StatusCode(
+                errorResult.Code,
+                new
+                {
+                    Error = errorResult.Message,
+                    Flag = errorResult.Flag,
+                }),
             NoContentResult => NoContent(),
             _ => Ok(result),
         };

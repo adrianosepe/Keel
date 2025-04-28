@@ -1,30 +1,6 @@
 ﻿namespace Keel.Domain.CleanCode.Flow.Action;
 
-public record ErrorResult : OperationResult
+public record ErrorResult(int Code, string Message, string? Flag = null) : OperationResult
 {
-    private readonly int _code;
-    private readonly ErrorDetail? _error;
-
-    public ErrorResult(int code)
-    {
-        _code = code;
-    }
-
-    public ErrorResult(int code, ErrorDetail error)
-    {
-        _error = error;
-        _code = code;
-    }
-
-    public int Code => _code;
-
-    public ErrorDetail? Error => _error;
-
-    public override bool IsSuccess => true;
+    public override bool IsSuccess => false;
 }
-
-public record ErrorDetail(
-    int? Code,
-    string? Type,
-    string Message
-);
