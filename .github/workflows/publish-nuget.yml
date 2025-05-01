@@ -4,11 +4,16 @@ on:
   workflow_dispatch:
     inputs:
       project:
-        description: 'Projeto a ser publicado (ex: ProjetoA, ProjetoB)'
+        description: 'Select the project'
         required: true
-        default: 'ProjetoA'
+        type: choice
+        options:
+        - Keel.Domain.CleanCode
+        - Keel.Infra.Db
+        - Keel.Infra.RabbitMQ
+        - Keel.Infra.WebApi
       version:
-        description: 'Versão para o pacote (ex: v1.0.0)'
+        description: 'Package Version (ex: v1.0.0)'
         required: true
         default: 'v1.0.0'
 
@@ -22,7 +27,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '8.x'
+        dotnet-version: '9.x'
 
     - name: Get version from input
       id: get_version
@@ -36,12 +41,10 @@ jobs:
 
     - name: Set version for selected project
       run: |
-        # Atualiza a versão no projeto selecionado
         dotnet msbuild src/${{ github.event.inputs.project }}/${{ github.event.inputs.project }}.csproj /p:Version=$VERSION
 
     - name: Pack selected project
       run: |
-        # Empacota o projeto selecionado
         dotnet pack src/${{ github.event.inputs.project }}/${{ github.event.inputs.project }}.csproj --configuration Release --no-build -o out
 
     - name: Publish package to NuGet
