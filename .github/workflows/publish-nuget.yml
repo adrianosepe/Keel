@@ -34,7 +34,7 @@ jobs:
       run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
 
     - name: Restore solution
-      run: dotnet restore MySolution.sln
+      run: dotnet restore Keel.sln
 
     - name: Build solution
       run: dotnet build Keel.sln --configuration Release --no-restore
