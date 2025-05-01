@@ -1,0 +1,48 @@
+name: Build and Publish NuGet Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      project:
+        description: 'Projeto a ser publicado (ex: ProjetoA, ProjetoB)'
+        required: true
+        default: 'ProjetoA'
+      version:
+        description: 'Versão para o pacote (ex: v1.0.0)'
+        required: true
+        default: 'v1.0.0'
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.x'
+
+    - name: Get version from input
+      id: get_version
+      run: echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
+
+    - name: Restore solution
+      run: dotnet restore MySolution.sln
+
+    - name: Build solution
+      run: dotnet build MySolution.sln --configuration Release --no-restore
+
+    - name: Set version for selected project
+      run: |
+        # Atualiza a versão no projeto selecionado
+        dotnet msbuild src/${{ github.event.inputs.project }}/${{ github.event.inputs.project }}.csproj /p:Version=$VERSION
+
+    - name: Pack selected project
+      run: |
+        # Empacota o projeto selecionado
+        dotnet pack src/${{ github.event.inputs.project }}/${{ github.event.inputs.project }}.csproj --configuration Release --no-build -o out
+
+    - name: Publish package to NuGet
+      run: dotnet nuget push "out/*.nupkg" --source https://api.nuget.org/v3/index.json --api-key ${{ secrets.NUGET_API_KEY }}
