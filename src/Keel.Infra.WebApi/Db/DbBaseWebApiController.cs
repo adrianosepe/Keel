@@ -1,6 +1,4 @@
 ﻿using Keel.Infra.Db.Access;
-using System;
-using System.Linq;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Data.ResponseModel;
 using DevExtreme.AspNet.Mvc;

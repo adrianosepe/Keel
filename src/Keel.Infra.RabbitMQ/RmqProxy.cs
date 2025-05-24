@@ -1,8 +1,10 @@
-﻿using RabbitMQ.Client;
+﻿using JetBrains.Annotations;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Keel.Infra.RabbitMQ;
 
+[UsedImplicitly]
 public class RmqProxy : IRmqProxy
 {
     private readonly RmqQueueEndpoint _endpoint;
@@ -84,6 +86,14 @@ public class RmqProxy : IRmqProxy
             {
                 _connection = await ConnFactory.CreateConnectionAsync();
                 _channel = await _connection.CreateChannelAsync();
+                
+                // Declara a fila — será criada se não existir
+                await _channel.QueueDeclareAsync(
+                    queue: _endpoint.Name,
+                    durable: true,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null);
 
                 _defProperties = new BasicProperties
                     {

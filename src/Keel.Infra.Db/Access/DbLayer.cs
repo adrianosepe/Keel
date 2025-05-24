@@ -18,8 +18,7 @@ public abstract class DbLayer : IDbLayer, IDbSharedContextProvider
     {
         _lazyOrm = new Lazy<DbContext>(InternalCreateDbContext);
 
-        _lazyAdo = new Lazy<DbDirectAccess>(
-            () => new DbDirectAccess(this));
+        _lazyAdo = new Lazy<DbDirectAccess>(InternalCreateDirectAccess);
 
         _lazyDapper = new Lazy<DbDapperAccess>(
             () => new DbDapperAccess(this));
@@ -29,26 +28,31 @@ public abstract class DbLayer : IDbLayer, IDbSharedContextProvider
     public DbDirectAccess Ado => _lazyAdo.Value;
     public DbDapperAccess Dapper => _lazyDapper.Value;
 
-    public async Task<DbConnection> GetConnectionAsync()
+    public async Task<DbConnection> GetConnectionAsync(CancellationToken cancellationToken)
     {
         var context = await this
             .CastTo<IDbSharedContextProvider>()
-            .GetContextAsync()
+            .GetContextAsync(cancellationToken)
             .ConfigureAwait(false);
 
         return context.Connection;
     }
-
+    public Task<DateTime> GetCurrentUtcDateTimeAsync(CancellationToken cancellationToken)
+    {
+        return Ado.GetCurrentUtcDateTimeAsync(cancellationToken);
+    }
+    
     protected abstract DbContext InternalCreateDbContext();
+    protected abstract DbDirectAccess InternalCreateDirectAccess();
 
-    async Task<DbSharedContext> IDbSharedContextProvider.GetContextAsync()
+    async Task<DbSharedContext> IDbSharedContextProvider.GetContextAsync(CancellationToken cancellationToken)
     {
         var transaction = Orm.Database.CurrentTransaction?.GetDbTransaction();
 
         var connection = Orm.Database.GetDbConnection();
         if (connection.State != ConnectionState.Open)
         {
-            await connection.OpenAsync();
+            await connection.OpenAsync(cancellationToken);
         }
 
         return new DbSharedContext(
@@ -57,19 +61,19 @@ public abstract class DbLayer : IDbLayer, IDbSharedContextProvider
             false);
     }
 
-    async Task<DbCommand> IDbSharedContextProvider.GetCommandAsync()
+    async Task<DbCommand> IDbSharedContextProvider.GetCommandAsync(CancellationToken cancellationToken)
     {
         var connection = Orm.Database.GetDbConnection();
         if (connection.State != ConnectionState.Open)
         {
-            await connection.OpenAsync();
+            await connection.OpenAsync(cancellationToken);
         }
 
         return connection.CreateCommand();
     }
 }
 
-public class DbLayer<TDbContext>(TDbContext context) : DbLayer, IDbLayer<TDbContext>
+public abstract class DbLayer<TDbContext>(TDbContext context) : DbLayer, IDbLayer<TDbContext>
     where TDbContext : DbContext
 {
     public new TDbContext Orm => context;

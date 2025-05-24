@@ -10,9 +10,9 @@ namespace Keel.Infra.Db.Access;
 
 public class DbDapperAccess(IDbSharedContextProvider sharedConnectionProvider)
 {
-    public async Task<T?> ReadOneAsync<T>(string sql, object? param = null)
+    public async Task<T?> ReadOneAsync<T>(string sql, object? param = null, CancellationToken cancellationToken = default)
     {
-        using var context = await sharedConnectionProvider.GetContextAsync();
+        using var context = await sharedConnectionProvider.GetContextAsync(cancellationToken);
         var connection = context.Connection;
 
         return connection
@@ -22,9 +22,9 @@ public class DbDapperAccess(IDbSharedContextProvider sharedConnectionProvider)
                 commandType: CommandType.Text,
                 transaction: context.Transaction);
     }
-    public async Task<T?> ReadOneSpAsync<T>(string sql, object? param = null)
+    public async Task<T?> ReadOneSpAsync<T>(string sql, object? param = null, CancellationToken cancellationToken = default)
     {
-        using var context = await sharedConnectionProvider.GetContextAsync();
+        using var context = await sharedConnectionProvider.GetContextAsync(cancellationToken);
         var connection = context.Connection;
 
         return connection.QueryFirstOrDefault<T>(
@@ -34,9 +34,9 @@ public class DbDapperAccess(IDbSharedContextProvider sharedConnectionProvider)
             transaction: context.Transaction);
     }
 
-    public async Task<IEnumerable<T>> ReadAsync<T>(string sql, object? param = null)
+    public async Task<IEnumerable<T>> ReadAsync<T>(string sql, object? param = null, CancellationToken cancellationToken = default)
     {
-        using var context = await sharedConnectionProvider.GetContextAsync();
+        using var context = await sharedConnectionProvider.GetContextAsync(cancellationToken);
         var connection = context.Connection;
 
         return connection.Query<T>(
@@ -46,9 +46,9 @@ public class DbDapperAccess(IDbSharedContextProvider sharedConnectionProvider)
             transaction: context.Transaction);
     }
 
-    public async Task<IEnumerable<T>> ReadSpAsync<T>(string sql, object? param = null)
+    public async Task<IEnumerable<T>> ReadSpAsync<T>(string sql, object? param = null, CancellationToken cancellationToken = default)
     {
-        using var context = await sharedConnectionProvider.GetContextAsync();
+        using var context = await sharedConnectionProvider.GetContextAsync(cancellationToken);
         var connection = context.Connection;
 
         return await connection.QueryAsync<T>(
@@ -57,9 +57,9 @@ public class DbDapperAccess(IDbSharedContextProvider sharedConnectionProvider)
             commandType: CommandType.StoredProcedure, 
             transaction: context.Transaction);
     }
-    public async Task<IEnumerable<T>> ReadSpAsync<T>(string sql, int commandTimeout, object? param = null)
+    public async Task<IEnumerable<T>> ReadSpAsync<T>(string sql, int commandTimeout, object? param = null, CancellationToken cancellationToken = default)
     {
-        using var context = await sharedConnectionProvider.GetContextAsync();
+        using var context = await sharedConnectionProvider.GetContextAsync(cancellationToken);
         var connection = context.Connection;
 
         return await connection.QueryAsync<T>(
@@ -72,7 +72,7 @@ public class DbDapperAccess(IDbSharedContextProvider sharedConnectionProvider)
 
     public async Task<IEnumerable<TResult>> QueryAsync<TResult>(Action<DbDapperAccessBuilder> config, CancellationToken cancellationToken = default)
     {
-        using var context = await sharedConnectionProvider.GetContextAsync();
+        using var context = await sharedConnectionProvider.GetContextAsync(cancellationToken);
         var connection = context.Connection;
 
         var builder = new DbDapperAccessBuilder();

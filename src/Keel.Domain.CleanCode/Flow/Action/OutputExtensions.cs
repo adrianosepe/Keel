@@ -23,6 +23,12 @@ public static class OutputExtensions
         return output;
     }
     
+    public static Output NotFound(this Output output)
+    {
+        output.Result = new NotFoundResult();
+        return output;
+    }
+    
     public static Output Error(this Output output, HttpStatusCode code)
     {
         output.Result = new ErrorResult((int)code, $"An error occurred with code {code}");
