@@ -17,6 +17,8 @@ public class RmqSubscriber
 
         return this;
     }
+    
+    public IRmqProxy? Proxy => _proxy;
 
     internal async Task SubscribeAsync()
     {

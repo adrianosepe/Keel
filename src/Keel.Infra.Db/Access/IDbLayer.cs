@@ -9,7 +9,8 @@ public interface IDbLayer
     DbDirectAccess Ado { get; }
     DbDapperAccess Dapper { get; }
 
-    Task<DbConnection> GetConnectionAsync();
+    Task<DbConnection> GetConnectionAsync(CancellationToken cancellationToken);
+    Task<DateTime> GetCurrentUtcDateTimeAsync(CancellationToken cancellationToken);
 }
 
 public interface IDbLayer<out TDbContext> : IDbLayer where TDbContext : DbContext

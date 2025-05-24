@@ -1,6 +1,7 @@
 ﻿using Keel.Domain.CleanCode.Flow.Action;
 using Microsoft.AspNetCore.Mvc;
 using NoContentResult = Keel.Domain.CleanCode.Flow.Action.NoContentResult;
+using NotFoundResult = Keel.Domain.CleanCode.Flow.Action.NotFoundResult;
 
 namespace Keel.Infra.WebApi.Clean;
 
@@ -29,6 +30,7 @@ public class ApiController : ControllerBase
                     Flag = errorResult.Flag,
                 }),
             NoContentResult => NoContent(),
+            NotFoundResult => NotFound(),
             _ => Ok(result),
         };
     }
