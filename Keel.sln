@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keel.Infra.RabbitMQ", "src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keel.Infra.Db", "src\Keel.Infra.Db\Keel.Infra.Db.csproj", "{7717B8F3-7172-444B-980F-BAB9BF410C7F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,14 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{430FA1E1-205A-4CEF-B869-C2DA40FAB6E5} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{7AF689AF-73E1-42F9-9DB1-ADFC150A50CF} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{37D352EB-F8A5-49FF-B28B-95A2D35F4745} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{7717B8F3-7172-444B-980F-BAB9BF410C7F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {BB56E97F-9C75-4812-AB65-B9D141C9EDD6}
 	EndGlobalSection
 EndGlobal
