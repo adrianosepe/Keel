@@ -1,4 +1,4 @@
-﻿using Keel.Infra.Db.Access;
+﻿using Keel.Infra.Db;
 using DevExtreme.AspNet.Data;
 using DevExtreme.AspNet.Data.ResponseModel;
 using DevExtreme.AspNet.Mvc;
@@ -11,14 +11,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Keel.Infra.WebApi.Db;
 
-public abstract class DbBaseWebApiController<TService>(IDbLayer sqlLayer, TService service) : DbBaseController(sqlLayer)
+public abstract class DbApiController<TService>(IDbLayer dbLayer, TService service) : DbController(dbLayer)
     where TService : DbEntityService
 {
     protected TService Svc => service;
 }
 
-public abstract class DbBaseWebApiController<TModel, TService>(IDbLayer sqlLayer, TService service)
-    : DbBaseController(sqlLayer)
+public abstract class DbApiController<TModel, TService>(IDbLayer dbLayer, TService service)
+    : DbController(dbLayer)
     where TModel : class, IEntity, new()
     where TService : DbEntityService<TModel>
 {
@@ -28,12 +28,12 @@ public abstract class DbBaseWebApiController<TModel, TService>(IDbLayer sqlLayer
 
     protected async Task<bool> Exists(int key) => await Svc.GetQuery().AnyAsync(model => model.ID == key);
 
-    protected async Task<TypedResult<TModel>> InternalDeleteAsync(int key)
+    protected async Task<TypedResult<TModel>> InternalDeleteAsync(int key, CancellationToken cancellationToken)
     {
         return await InternalSafeExecuteAsync(
             async () =>
             {
-                var entity = await Svc.GetByIdAsync(key);
+                var entity = await Svc.GetByIdAsync(key, cancellationToken);
                 if (entity == null)
                 {
                     return NotFoundResult;
@@ -41,7 +41,7 @@ public abstract class DbBaseWebApiController<TModel, TService>(IDbLayer sqlLayer
 
                 try
                 {
-                    await Svc.DeleteAsync(entity);
+                    await Svc.DeleteAsync(entity, cancellationToken);
 
                     return TypedResult<TModel>.Success(entity);
                 }
@@ -54,19 +54,19 @@ public abstract class DbBaseWebApiController<TModel, TService>(IDbLayer sqlLayer
 
     protected LoadResult InternalGet(DataSourceLoadOptions loadOptions) => DataSourceLoader.Load(Svc.GetQuery(), loadOptions);
 
-    protected Task<TypedResult<IEnumerable<TModel>>> InternalGetAllAsync() => InternalExecuteGetAsync(Svc.GetAllAsync());
+    protected Task<TypedResult<IEnumerable<TModel>>> InternalGetAllAsync(CancellationToken cancellationToken) => InternalExecuteGetAsync(Svc.GetAllAsync(cancellationToken));
 
     protected virtual async Task<LoadResult> InternalGetAsync(DataSourceLoadOptions loadOptions) => await InternalExecuteGetAsync(Task.Run(() => Svc.GetQuery()), loadOptions);
 
-    protected async Task<TypedResult<TModel>> InternalGetByIdAsync(int key)
+    protected async Task<TypedResult<TModel>> InternalGetByIdAsync(int key, CancellationToken cancellationToken)
     {
         return await InternalSafeExecuteAsync(
             async () =>
-            {
-                var entity = await Svc.GetByIdAsync(key);
+                {
+                    var entity = await Svc.GetByIdAsync(key, cancellationToken);
 
-                return entity == null ? NotFoundResult : TypedResult<TModel>.Success(entity);
-            });
+                    return entity == null ? NotFoundResult : TypedResult<TModel>.Success(entity);
+                });
     }
 
     protected async Task<LoadResult> InternalGetToComposeAsync(DataSourceLoadOptions loadOptions)
@@ -76,33 +76,34 @@ public abstract class DbBaseWebApiController<TModel, TService>(IDbLayer sqlLayer
         return result;
     }
 
-    protected async Task<TypedResult<TModel>> InternalInsertAsync(TModel entity)
+    protected async Task<TypedResult<TModel>> InternalInsertAsync(TModel entity, CancellationToken cancellationToken)
     {
         return await InternalSafeExecuteAsync(
             async () =>
             {
-                var result = await Svc.InsertAsync(entity);
+                var result = await Svc.InsertAsync(entity, cancellationToken);
                 if (result.Fail)
                 {
                     return TypedResult<TModel>.Error(result);
                 }
 
-                return TypedResult<TModel>.Success(
-                    (await Svc
-                        .GetQuery()
-                        .AsNoTracking()
-                        .FirstOrDefaultAsync(model => model.ID == entity.ID)
-                        .ConfigureAwait(false))!);
+                var entityFromDb = await Svc
+                    .GetQuery()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(model => model.ID == entity.ID, cancellationToken)
+                    .ConfigureAwait(false);
+
+                return TypedResult<TModel>.Success(entityFromDb!);
             });
     }
 
-    protected async Task<TypedResult<TModel>> InternalNewEntity()
+    protected async Task<TypedResult<TModel>> InternalNewEntityAsync()
     {
         return await InternalSafeExecuteAsync(
             async () => TypedResult<TModel>.Success(await Svc.NewEntityAsync()));
     }
 
-    protected async Task<TypedResult<TModel>> InternalUpdateAsync(int key, TModel entity)
+    protected async Task<TypedResult<TModel>> InternalUpdateAsync(int key, TModel entity, CancellationToken cancellationToken)
     {
         return await InternalSafeExecuteAsync(
             async () =>
@@ -115,7 +116,7 @@ public abstract class DbBaseWebApiController<TModel, TService>(IDbLayer sqlLayer
 
                 try
                 {
-                    var result = await Svc.UpdateAsync(entity);
+                    var result = await Svc.UpdateAsync(entity, cancellationToken);
                     if (result.Fail)
                     {
                         return TypedResult<TModel>.Error(result);
@@ -124,7 +125,7 @@ public abstract class DbBaseWebApiController<TModel, TService>(IDbLayer sqlLayer
                     var entityFromDb = await Svc
                         .GetQuery()
                         .AsNoTracking()
-                        .FirstOrDefaultAsync(model => model.ID == key);
+                        .FirstOrDefaultAsync(model => model.ID == key, cancellationToken);
 
                     return entityFromDb == null 
                         ? NotFoundResult 

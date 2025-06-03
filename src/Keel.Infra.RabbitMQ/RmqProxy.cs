@@ -1,10 +1,8 @@
-﻿using JetBrains.Annotations;
-using RabbitMQ.Client;
+﻿using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Keel.Infra.RabbitMQ;
 
-[UsedImplicitly]
 public class RmqProxy : IRmqProxy
 {
     private readonly RmqQueueEndpoint _endpoint;

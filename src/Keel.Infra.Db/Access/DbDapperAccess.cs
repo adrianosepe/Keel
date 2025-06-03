@@ -3,9 +3,6 @@ using System.Data.Common;
 using Dapper;
 using Keel.Infra.Db.Access.Context;
 
-
-// ReSharper disable UnusedMember.Global
-
 namespace Keel.Infra.Db.Access;
 
 public class DbDapperAccess(IDbSharedContextProvider sharedConnectionProvider)

@@ -2,26 +2,16 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Keel.Infra.Db.Orm.Transaction;
 
-public class DbWrappedTransaction(bool transactionOwner, DatabaseFacade database) 
+internal class DbWrappedTransaction(bool transactionOwner, DatabaseFacade database) 
     : IDbWrappedTransaction
 {
     public Task CommitAsync(CancellationToken cancellationToken = default)
     {
-        if (!transactionOwner)
-        {
-            return Task.CompletedTask;
-        }
-        
-        return database.CommitTransactionAsync(cancellationToken);
+        return transactionOwner ? database.CommitTransactionAsync(cancellationToken) : Task.CompletedTask;
     }
 
     public Task RollbackAsync(CancellationToken cancellationToken = default)
     {
-        if (!transactionOwner)
-        {
-            return Task.CompletedTask;
-        }
-        
-        return database.RollbackTransactionAsync(cancellationToken);
+        return transactionOwner ? database.RollbackTransactionAsync(cancellationToken) : Task.CompletedTask;
     }
 }

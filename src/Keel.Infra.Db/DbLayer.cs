@@ -1,12 +1,11 @@
 ﻿using System.Data;
 using System.Data.Common;
+using Keel.Infra.Db.Access;
 using Keel.Infra.Db.Access.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
-// ReSharper disable UnusedMember.Global
-
-namespace Keel.Infra.Db.Access;
+namespace Keel.Infra.Db;
 
 public abstract class DbLayer : IDbLayer, IDbSharedContextProvider
 {
