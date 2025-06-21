@@ -56,7 +56,21 @@ public abstract class DbApiController<TModel, TService>(IDbLayer dbLayer, TServi
 
     protected Task<TypedResult<IEnumerable<TModel>>> InternalGetAllAsync(CancellationToken cancellationToken) => InternalExecuteGetAsync(Svc.GetAllAsync(cancellationToken));
 
-    protected virtual async Task<LoadResult> InternalGetAsync(DataSourceLoadOptions loadOptions) => await InternalExecuteGetAsync(Task.Run(() => Svc.GetQuery()), loadOptions);
+    protected virtual async Task<LoadResult> InternalGetAsync(DataSourceLoadOptions loadOptions)
+    {
+        try
+        {
+            var data = await Svc.GetQuery().ToArrayAsync();
+            var result = await InternalExecuteGetAsync(Task.Run(() => data.AsQueryable()), loadOptions);
+
+            return result;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
+    }
 
     protected async Task<TypedResult<TModel>> InternalGetByIdAsync(int key, CancellationToken cancellationToken)
     {
@@ -71,8 +85,8 @@ public abstract class DbApiController<TModel, TService>(IDbLayer dbLayer, TServi
 
     protected async Task<LoadResult> InternalGetToComposeAsync(DataSourceLoadOptions loadOptions)
     {
-        var result = await Task.Run(() => DataSourceLoader.Load(Svc.GetToComposeQuery(), loadOptions));
-
+        var query = Svc.GetQuery();
+        var result = await DataSourceLoader.LoadAsync(query, loadOptions);
         return result;
     }
 
