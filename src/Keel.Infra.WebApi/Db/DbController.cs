@@ -1,19 +1,19 @@
 ﻿using DotNetAppBase.Std.Library.ComponentModel.Model.Svc;
-using Keel.Infra.Db.Access;
+using Keel.Infra.Db;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Keel.Infra.WebApi.Db;
 
-public abstract class DbBaseController(IDbLayer sqlLayer) : ControllerBase
+public abstract class DbController(IDbLayer dbLayer) : ControllerBase
 {
-    public IDbLayer Sql => sqlLayer;
+    public IDbLayer Db => dbLayer;
 
     public string Name
     {
         get
         {
             var name = GetType().Name;
-            return name.Remove(name.Length - "Controller".Length);
+            return name.Replace("Controller", string.Empty);
         }
     }
 

@@ -1,7 +1,8 @@
 ﻿using System.Data.Common;
+using Keel.Infra.Db.Access;
 using Microsoft.EntityFrameworkCore;
 
-namespace Keel.Infra.Db.Access;
+namespace Keel.Infra.Db;
 
 public interface IDbLayer
 {

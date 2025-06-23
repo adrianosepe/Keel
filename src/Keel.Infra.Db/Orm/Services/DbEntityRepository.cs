@@ -7,7 +7,6 @@ using DotNetAppBase.Std.Library.ComponentModel.Model.Svc;
 using DotNetAppBase.Std.Library.ComponentModel.Model.Svc.Enums;
 using DotNetAppBase.Std.Library.ComponentModel.Model.Validation;
 using JetBrains.Annotations;
-using Keel.Infra.Db.Access;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -35,7 +34,7 @@ public abstract class DbEntityRepository<TEntity> : DbEntityRepository where TEn
     protected DbSet<TEntity> Set => _lazyDbSet.Value;
 
     protected virtual IQueryable<TEntity> GetDirectQuery() => Set;
-    protected virtual IQueryable<TEntity> GetQuery() => GetDirectQuery();
+    public virtual IQueryable<TEntity> GetQuery() => GetDirectQuery();
     
     protected TypedResult<TEntity> Success(string reason) => TypedResult<TEntity>.Success(reason);
     protected TypedResult<TEntity> Success(TEntity entity, string? reason = null) => TypedResult<TEntity>.Success(entity, reason);
@@ -43,9 +42,9 @@ public abstract class DbEntityRepository<TEntity> : DbEntityRepository where TEn
     protected TypedResult<TEntity> Warning(string reason) => TypedResult<TEntity>.Warning(reason);
     protected TypedResult<TEntity> Exception(Exception ex) => TypedResult<TEntity>.Exception(ex);
     
-    public Task<TEntity?> GetByIdAsync(int id) => GetQuery().FirstOrDefaultAsync(model => model.ID == id);
-    public async Task<IEnumerable<TEntity>> GetAllAsync() => await GetQuery().ToArrayAsync();
-    public async Task<bool> ExistsAsync(int id) => await GetQuery().AnyAsync(model => model.ID == id);
+    public Task<TEntity?> GetByIdAsync(int id, CancellationToken cancellationToken) => GetQuery().FirstOrDefaultAsync(model => model.ID == id, cancellationToken);
+    public async Task<IEnumerable<TEntity>> GetAllAsync(CancellationToken cancellationToken) => await GetQuery().ToArrayAsync(cancellationToken);
+    public async Task<bool> ExistsAsync(int id, CancellationToken cancellationToken) => await GetQuery().AnyAsync(model => model.ID == id, cancellationToken);
 
     public virtual async Task<TEntity> NewEntityAsync()
     {
