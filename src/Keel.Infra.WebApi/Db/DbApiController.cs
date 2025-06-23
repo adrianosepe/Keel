@@ -22,7 +22,7 @@ public abstract class DbApiController<TModel, TService>(IDbLayer dbLayer, TServi
     where TModel : class, IEntity, new()
     where TService : DbEntityService<TModel>
 {
-    private static readonly TypedResult<TModel> NotFoundResult = TypedResult<TModel>.Error("Entidade indisponível!");
+    private static readonly TypedResult<TModel> NotFoundResult = TypedResult<TModel>.Error("Informação indisponível!");
 
     protected TService Svc => service;
 
