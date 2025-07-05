@@ -7,8 +7,6 @@ using DotNetAppBase.Std.Library.ComponentModel.Model.Svc;
 using Keel.Infra.Db.Orm.Services;
 using Microsoft.EntityFrameworkCore;
 
-// ReSharper disable UnusedMember.Global
-
 namespace Keel.Infra.WebApi.Db;
 
 public abstract class DbApiController<TService>(IDbLayer dbLayer, TService service) : DbController(dbLayer)
@@ -85,7 +83,7 @@ public abstract class DbApiController<TModel, TService>(IDbLayer dbLayer, TServi
 
     protected async Task<LoadResult> InternalGetToComposeAsync(DataSourceLoadOptions loadOptions)
     {
-        var query = Svc.GetQuery();
+        var query = Svc.GetToComposeQuery();
         var result = await DataSourceLoader.LoadAsync(query, loadOptions);
         return result;
     }
