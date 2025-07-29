@@ -54,20 +54,11 @@ public abstract class DbApiController<TModel, TService>(IDbLayer dbLayer, TServi
 
     protected Task<TypedResult<IEnumerable<TModel>>> InternalGetAllAsync(CancellationToken cancellationToken) => InternalExecuteGetAsync(Svc.GetAllAsync(cancellationToken));
 
-    protected virtual async Task<LoadResult> InternalGetAsync(DataSourceLoadOptions loadOptions)
+    protected virtual async Task<LoadResult> InternalGetAsync(DataSourceLoadOptions loadOptions, CancellationToken cancellationToken)
     {
-        try
-        {
-            var data = await Svc.GetQuery().ToArrayAsync();
-            var result = await InternalExecuteGetAsync(Task.Run(() => data.AsQueryable()), loadOptions);
-
-            return result;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
+        var data = await Svc.GetQuery().ToArrayAsync(cancellationToken);
+        var result = await InternalExecuteGetAsync(data.AsQueryable(), loadOptions, cancellationToken);
+        return result;
     }
 
     protected async Task<TypedResult<TModel>> InternalGetByIdAsync(int key, CancellationToken cancellationToken)
@@ -81,10 +72,10 @@ public abstract class DbApiController<TModel, TService>(IDbLayer dbLayer, TServi
                 });
     }
 
-    protected async Task<LoadResult> InternalGetToComposeAsync(DataSourceLoadOptions loadOptions)
+    protected Task<LoadResult> InternalGetToComposeAsync(DataSourceLoadOptions loadOptions, CancellationToken cancellationToken)
     {
         var query = Svc.GetToComposeQuery();
-        var result = await DataSourceLoader.LoadAsync(query, loadOptions);
+        var result = DataSourceLoader.LoadAsync(query, loadOptions, cancellationToken);
         return result;
     }
 
@@ -184,5 +175,9 @@ public abstract class DbApiController<TModel, TService>(IDbLayer dbLayer, TServi
 
     protected LoadResult InternalExecuteGet(IQueryable<dynamic> query, DataSourceLoadOptions loadOptions) => DataSourceLoader.Load(query, loadOptions);
 
-    protected async Task<LoadResult> InternalExecuteGetAsync(Task<IQueryable<TModel>> asyncQuer, DataSourceLoadOptions loadOptions) => DataSourceLoader.Load(await asyncQuer, loadOptions);
+    protected Task<LoadResult> InternalExecuteGetAsync(IQueryable<TModel> asyncQuer, DataSourceLoadOptions loadOptions, CancellationToken cancellationToken)
+    {
+        var result = DataSourceLoader.Load(asyncQuer, loadOptions);
+        return Task.FromResult(result);
+    }
 }
