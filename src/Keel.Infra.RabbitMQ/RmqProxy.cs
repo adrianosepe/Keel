@@ -1,10 +1,12 @@
-﻿using RabbitMQ.Client;
+﻿using Microsoft.Extensions.Logging;
+using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 
 namespace Keel.Infra.RabbitMQ;
 
 public class RmqProxy : IRmqProxy
 {
+    private readonly ILogger<RmqProxy> _logger;
     private readonly RmqQueueEndpoint _endpoint;
     private readonly Lazy<ConnectionFactory> _lazyConnFactory;
 
@@ -16,9 +18,11 @@ public class RmqProxy : IRmqProxy
     private IConnection? _connection;
     private BasicProperties? _defProperties;
 
-    public RmqProxy(RmqQueueEndpoint endpointOptions)
+    public RmqProxy(ILogger<RmqProxy> logger, RmqQueueEndpoint endpointOptions)
     {
+        _logger = logger;
         _endpoint = endpointOptions;
+        
         _subscribers = [];
 
         _lazyConnFactory = new Lazy<ConnectionFactory>(
@@ -35,7 +39,7 @@ public class RmqProxy : IRmqProxy
 
     public bool IsConnected => _channel != null;
 
-    public async Task<bool> AddAsync(byte[] data, CancellationToken cancellationToken, byte maxAttempts = 3)
+    public async Task<bool> PublishAsync(byte[] data, CancellationToken cancellationToken, byte maxAttempts = 3)
     {
         var i = 0;
 
