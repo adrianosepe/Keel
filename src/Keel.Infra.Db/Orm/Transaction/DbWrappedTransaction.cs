@@ -5,12 +5,12 @@ namespace Keel.Infra.Db.Orm.Transaction;
 internal class DbWrappedTransaction(bool transactionOwner, DatabaseFacade database) 
     : IDbWrappedTransaction
 {
-    public Task CommitAsync(CancellationToken cancellationToken = default)
+    public Task CommitAsync(CancellationToken cancellationToken)
     {
         return transactionOwner ? database.CommitTransactionAsync(cancellationToken) : Task.CompletedTask;
     }
 
-    public Task RollbackAsync(CancellationToken cancellationToken = default)
+    public Task RollbackAsync(CancellationToken cancellationToken)
     {
         return transactionOwner ? database.RollbackTransactionAsync(cancellationToken) : Task.CompletedTask;
     }

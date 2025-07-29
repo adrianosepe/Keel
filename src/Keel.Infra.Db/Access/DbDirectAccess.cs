@@ -1,9 +1,8 @@
 ﻿using System.Data;
 using System.Data.Common;
 using DotNetAppBase.Std.Db.Work;
+using DotNetAppBase.Std.Exceptions.Bussines;
 using Keel.Infra.Db.Access.Context;
-
-// ReSharper disable UnusedMember.Global
 
 namespace Keel.Infra.Db.Access;
 
@@ -169,6 +168,98 @@ public abstract class DbDirectAccess(IDbSharedContextProvider provider)
         }
     }
     
+    public async Task<TResult> QueryAsync<TResult>(Action<DbDirectAccessBuilder> config, CancellationToken cancellationToken)
+    {
+        var context = await provider.GetContextAsync(cancellationToken).ConfigureAwait(false);
+        await using var comm = context.CreateCommand();
+
+        var builder = new DbDirectAccessBuilder(this, comm);
+        
+        config(builder);
+
+        builder.SetExecutionByReturnType<TResult>();
+        if (builder.Mode == DbDirectAccessBuilder.EExecMode.PrimitiveValue)
+        {
+            return (TResult)(object)comm.ExecuteScalarAsync(cancellationToken);
+        }
+
+        var set = new DataSet();
+
+        using var adapter = InternalCreateDataAdapter(comm);
+
+        await Task.Run(() => adapter.Fill(set), cancellationToken);
+
+        if (builder.Mode == DbDirectAccessBuilder.EExecMode.DataRow)
+        {
+            if (set.Tables.Count < 1 || set.Tables[0].Rows.Count < 1)
+            {
+                throw XFlowException.Create("Query don't return valida result");
+            }
+
+            return (TResult)(object)set.Tables[0].Rows[0];
+        }
+
+        if (builder.Mode == DbDirectAccessBuilder.EExecMode.DataTable)
+        {
+            if (set.Tables.Count < 1)
+            {
+                throw XFlowException.Create("Query don't return valida result");
+            }
+
+            return (TResult)(object)set.Tables[0];
+        }
+
+        return (TResult)(object)set;
+    }
+
+    public async Task<TResult> NonQueryAsync<TResult>(Action<DbDirectAccessBuilder> config, CancellationToken cancellationToken)
+    {
+        var context = await provider.GetContextAsync(cancellationToken).ConfigureAwait(false);
+        await using var command = context.CreateCommand();
+
+        var builder = new DbDirectAccessBuilder(this, command);
+        config(builder);
+
+        builder.SetExecutionByReturnType<TResult>();
+        if (builder.Mode == DbDirectAccessBuilder.EExecMode.PrimitiveValue)
+        {
+            return (TResult)(object)command.ExecuteScalarAsync(cancellationToken);
+        }
+
+        var set = new DataSet();
+
+        using var adapter = InternalCreateDataAdapter(command);
+
+        await Task.Run(() => adapter.Fill(set), cancellationToken);
+
+        if (builder.Mode == DbDirectAccessBuilder.EExecMode.DataRow)
+        {
+            if (set.Tables.Count < 1 || set.Tables[0].Rows.Count < 1)
+            {
+                throw XFlowException.Create("Query don't return valida result");
+            }
+
+            return (TResult)(object)set.Tables[0].Rows[0];
+        }
+
+        if (builder.Mode == DbDirectAccessBuilder.EExecMode.DataTable)
+        {
+            if (set.Tables.Count < 1)
+            {
+                throw XFlowException.Create("Query don't return valida result");
+            }
+
+            return (TResult)(object)set.Tables[0];
+        }
+
+        return (TResult)(object)set;
+    }
+
+    public DbParameter CreateParameter(string name, DbType dbType, object? value)
+    {
+        return InternalCreateParameter(name, dbType, value);
+    }
+
     public async Task<DateTime> GetCurrentUtcDateTimeAsync(CancellationToken cancellationToken)
     {
         var dt = await ScalarAsync<DateTime>(InternalGetCurrentUtcDateTimeSql(), CommandType.Text, cancellationToken);
@@ -176,6 +267,7 @@ public abstract class DbDirectAccess(IDbSharedContextProvider provider)
         return DateTime.SpecifyKind(dt, DateTimeKind.Utc);
     }
 
-    protected abstract DbDataAdapter InternalCreateDataAdapter(DbCommand comm);
     protected abstract string InternalGetCurrentUtcDateTimeSql();
+    protected abstract DbDataAdapter InternalCreateDataAdapter(DbCommand comm);
+    protected abstract DbParameter InternalCreateParameter(string name, DbType dbType, object? value);
 }

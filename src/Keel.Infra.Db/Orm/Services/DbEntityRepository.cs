@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Linq.Expressions;
 using DotNetAppBase.Std.Exceptions.Assert;
+using DotNetAppBase.Std.Exceptions.Base;
 using DotNetAppBase.Std.Library.ComponentModel.Model.Business;
 using DotNetAppBase.Std.Library.ComponentModel.Model.Business.Enums;
 using DotNetAppBase.Std.Library.ComponentModel.Model.Svc;
@@ -16,6 +17,30 @@ public abstract class DbEntityRepository(IDbLayer dbLayer)
 {
     protected IDbLayer Db => dbLayer;
     protected DbContext Orm => dbLayer.Orm;
+    
+    protected TypedResult<TArg> SecureExecute<TArg>(Func<TypedResult<TArg>> funcTask)
+    {
+        try
+        {
+            return funcTask();
+        }
+        catch (Exception e)
+        {
+            return TypedResult<TArg>.Exception(XException.IsOne(e, out var xEx) ? xEx : e);
+        }
+    }
+
+    protected async Task<TypedResult<TArg>> SecureExecute<TArg>(Func<Task<TypedResult<TArg>>> funcTask)
+    {
+        try
+        {
+            return await funcTask();
+        }
+        catch (Exception e)
+        {
+            return TypedResult<TArg>.Exception(XException.IsOne(e, out var xEx) ? xEx : e);
+        }
+    }
 }
 
 public abstract class DbEntityRepository<TEntity> : DbEntityRepository where TEntity : class, IEntity, new()
@@ -67,8 +92,8 @@ public abstract class DbEntityRepository<TEntity> : DbEntityRepository where TEn
     }
     public virtual Task<ServiceResponse<TEntity>> DeleteAsync(TEntity entity, CancellationToken cancellationToken) => ExecuteDefaultDbAction(entity, EServiceActionType.Delete, cancellationToken);
 
-    protected Task DirectDbAction(
-        EServiceActionType actionType, TEntity entity, CancellationToken cancellationToken) => ExecuteInTransactionContext(entity, actionType, () => GetRepositoryAction(actionType)(entity), cancellationToken);
+    protected Task DirectDbAction(EServiceActionType actionType, TEntity entity, CancellationToken cancellationToken) 
+        => ExecuteInTransactionContext(entity, actionType, () => GetRepositoryAction(actionType)(entity), cancellationToken);
     protected Task DirectDbDelete(TEntity entity, CancellationToken cancellationToken) => DirectDbAction(EServiceActionType.Delete, entity, cancellationToken);
     protected Task DirectDbInsert(TEntity entity, CancellationToken cancellationToken) => DirectDbAction(EServiceActionType.Insert, entity, cancellationToken);
     protected Task DirectDbUpdate(TEntity entity, CancellationToken cancellationToken) => DirectDbAction(EServiceActionType.Update, entity, cancellationToken);
