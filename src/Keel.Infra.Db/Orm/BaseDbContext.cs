@@ -10,7 +10,7 @@ public class BaseDbContext : DbContext, IDbUnitOfWork
     public BaseDbContext() { }
     public BaseDbContext(DbContextOptions options) : base(options) { }
     
-    public async Task<IDbWrappedTransaction> BeginTransactionAsync(CancellationToken cancellationToken = default)
+    public async Task<IDbWrappedTransaction> BeginTransactionAsync(CancellationToken cancellationToken)
     {
         await _semaphoreSlim.WaitAsync(cancellationToken);
 
