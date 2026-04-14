@@ -15,6 +15,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keel.Infra.Db.SqlServer", "src\Keel.Infra.Db.SqlServer\Keel.Infra.Db.SqlServer.csproj", "{369F838A-9484-4661-993B-1A419D3A5AF4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Keel.Infra.Broker.RabbitMQ", "src\Keel.Infra.Broker.RabbitMQ\Keel.Infra.Broker.RabbitMQ.csproj", "{CCB90D23-C361-4F5C-AF2E-24FB4C26F11A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,10 @@ Global
 		{369F838A-9484-4661-993B-1A419D3A5AF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{369F838A-9484-4661-993B-1A419D3A5AF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{369F838A-9484-4661-993B-1A419D3A5AF4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CCB90D23-C361-4F5C-AF2E-24FB4C26F11A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CCB90D23-C361-4F5C-AF2E-24FB4C26F11A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CCB90D23-C361-4F5C-AF2E-24FB4C26F11A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CCB90D23-C361-4F5C-AF2E-24FB4C26F11A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -51,6 +57,7 @@ Global
 		{37D352EB-F8A5-49FF-B28B-95A2D35F4745} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{7717B8F3-7172-444B-980F-BAB9BF410C7F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{369F838A-9484-4661-993B-1A419D3A5AF4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{CCB90D23-C361-4F5C-AF2E-24FB4C26F11A} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {BB56E97F-9C75-4812-AB65-B9D141C9EDD6}
