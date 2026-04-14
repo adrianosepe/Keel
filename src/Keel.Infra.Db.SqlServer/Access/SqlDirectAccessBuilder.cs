@@ -5,7 +5,7 @@ using Microsoft.Data.SqlClient;
 namespace Keel.Infra.Db.SqlServer.Access;
 
 [UsedImplicitly]
-public class DbDirectAccessBuilder(SqlCommand command)
+public class SqlDirectAccessBuilder(SqlCommand command)
 {
     public enum EExecMode
     {
@@ -17,21 +17,21 @@ public class DbDirectAccessBuilder(SqlCommand command)
 
     public EExecMode Mode { get; private set; } = EExecMode.DataTable;
 
-    public DbDirectAccessBuilder SetExecutionByReturnType<TResult>()
+    public SqlDirectAccessBuilder SetExecutionByReturnType<TResult>()
     {
         Mode = IdentifyExecMode<TResult>();
 
         return this;
     }
 
-    public DbDirectAccessBuilder SetExecutionMode(EExecMode mode)
+    public SqlDirectAccessBuilder SetExecutionMode(EExecMode mode)
     {
         Mode = mode;
 
         return this;
     }
 
-    public DbDirectAccessBuilder ForCommand(string command1, CommandType commandType)
+    public SqlDirectAccessBuilder ForCommand(string command1, CommandType commandType)
     {
         command.CommandText = command1;
         command.CommandType = commandType;
@@ -39,7 +39,7 @@ public class DbDirectAccessBuilder(SqlCommand command)
         return this;
     }
 
-    public DbDirectAccessBuilder ForText(string command1)
+    public SqlDirectAccessBuilder ForText(string command1)
     {
         command.CommandText = command1;
         command.CommandType = CommandType.Text;
@@ -47,7 +47,7 @@ public class DbDirectAccessBuilder(SqlCommand command)
         return this;
     }
 
-    public DbDirectAccessBuilder ForStoredProc(string command1)
+    public SqlDirectAccessBuilder ForStoredProc(string command1)
     {
         command.CommandText = command1;
         command.CommandType = CommandType.StoredProcedure;
@@ -55,14 +55,14 @@ public class DbDirectAccessBuilder(SqlCommand command)
         return this;
     }
 
-    public DbDirectAccessBuilder WithTimeout(int timeout)
+    public SqlDirectAccessBuilder WithTimeout(int timeout)
     {
         command.CommandTimeout = timeout;
 
         return this;
     }
 
-    public DbDirectAccessBuilder AddByte(string name, byte value)
+    public SqlDirectAccessBuilder AddByte(string name, byte value)
     {
         command.Parameters.Add(
             new SqlParameter().Set(name, SqlDbType.TinyInt, value));
@@ -70,7 +70,7 @@ public class DbDirectAccessBuilder(SqlCommand command)
         return this;
     }
 
-    public DbDirectAccessBuilder AddInt(string name, int? value)
+    public SqlDirectAccessBuilder AddInt(string name, int? value)
     {
         command.Parameters.Add(
             new SqlParameter().Set(name, SqlDbType.Int, value));
@@ -78,7 +78,7 @@ public class DbDirectAccessBuilder(SqlCommand command)
         return this;
     }
 
-    public DbDirectAccessBuilder AddEnum(string name, Enum value)
+    public SqlDirectAccessBuilder AddEnum(string name, Enum value)
     {
         command.Parameters.Add(
             new SqlParameter().Set(name, SqlDbType.Int, value));
@@ -86,7 +86,7 @@ public class DbDirectAccessBuilder(SqlCommand command)
         return this;
     }
 
-    public DbDirectAccessBuilder AddString(string name, string value)
+    public SqlDirectAccessBuilder AddString(string name, string value)
     {
         command.Parameters.Add(
             new SqlParameter().Set(name, SqlDbType.VarChar, value));
@@ -94,7 +94,7 @@ public class DbDirectAccessBuilder(SqlCommand command)
         return this;
     }
 
-    public DbDirectAccessBuilder AddParameters(params SqlParameter[] parameters)
+    public SqlDirectAccessBuilder AddParameters(params SqlParameter[] parameters)
     {
         command.Parameters.AddRange(parameters);
 
