@@ -10,19 +10,19 @@ namespace Keel.Infra.Db;
 // ReSharper restore CheckNamespace
 
 [UsedImplicitly]
-public static class DbDapperAccessExtensions
+public static class SqlDapperAccessExtensions
 {
-    public static async Task<TResult> QueryAsync<TResult>(this DbDirectAccess access, Action<DbDirectAccessBuilder> config, CancellationToken cancellationToken = default)
+    public static async Task<TResult> QueryAsync<TResult>(this DbDirectAccess access, Action<SqlDirectAccessBuilder> config, CancellationToken cancellationToken = default)
     {
         await using var comm = await access.Provider.GetCommandAsync(cancellationToken);
 
-        var builder = new DbDirectAccessBuilder(comm.CastTo<SqlCommand>());
+        var builder = new SqlDirectAccessBuilder(comm.CastTo<SqlCommand>());
 
         config(builder);
 
         builder.SetExecutionByReturnType<TResult>();
 
-        if (builder.Mode == DbDirectAccessBuilder.EExecMode.PrimitiveValue)
+        if (builder.Mode == SqlDirectAccessBuilder.EExecMode.PrimitiveValue)
         {
             return (TResult)(object)comm.ExecuteScalarAsync(cancellationToken);
         }
@@ -35,27 +35,27 @@ public static class DbDapperAccessExtensions
 
         return builder.Mode switch
         {
-            DbDirectAccessBuilder.EExecMode.DataRow when set.Tables.Count < 1 || set.Tables[0].Rows.Count < 1 =>
+            SqlDirectAccessBuilder.EExecMode.DataRow when set.Tables.Count < 1 || set.Tables[0].Rows.Count < 1 =>
                 throw XFlowException.Create("Query don't return valida result"),
-            DbDirectAccessBuilder.EExecMode.DataRow => (TResult)(object)set.Tables[0].Rows[0],
-            DbDirectAccessBuilder.EExecMode.DataTable when set.Tables.Count < 1 => throw XFlowException.Create(
+            SqlDirectAccessBuilder.EExecMode.DataRow => (TResult)(object)set.Tables[0].Rows[0],
+            SqlDirectAccessBuilder.EExecMode.DataTable when set.Tables.Count < 1 => throw XFlowException.Create(
                 "Query don't return valida result"),
-            DbDirectAccessBuilder.EExecMode.DataTable => (TResult)(object)set.Tables[0],
+            SqlDirectAccessBuilder.EExecMode.DataTable => (TResult)(object)set.Tables[0],
             _ => (TResult)(object)set,
         };
     }
 
-    public static async Task<TResult> NonQueryAsync<TResult>(this DbDirectAccess access, Action<DbDirectAccessBuilder> config, CancellationToken cancellationToken = default)
+    public static async Task<TResult> NonQueryAsync<TResult>(this DbDirectAccess access, Action<SqlDirectAccessBuilder> config, CancellationToken cancellationToken = default)
     {
         await using var comm = await access.Provider.GetCommandAsync(cancellationToken);
 
-        var builder = new DbDirectAccessBuilder(comm.CastTo<SqlCommand>());
+        var builder = new SqlDirectAccessBuilder(comm.CastTo<SqlCommand>());
 
         config(builder);
 
         builder.SetExecutionByReturnType<TResult>();
 
-        if (builder.Mode == DbDirectAccessBuilder.EExecMode.PrimitiveValue)
+        if (builder.Mode == SqlDirectAccessBuilder.EExecMode.PrimitiveValue)
         {
             return (TResult)(object)comm.ExecuteScalarAsync(cancellationToken);
         }
@@ -66,7 +66,7 @@ public static class DbDapperAccessExtensions
 
         await Task.Run(() => adapter.Fill(set), cancellationToken);
 
-        if (builder.Mode == DbDirectAccessBuilder.EExecMode.DataRow)
+        if (builder.Mode == SqlDirectAccessBuilder.EExecMode.DataRow)
         {
             if (set.Tables.Count < 1 || set.Tables[0].Rows.Count < 1)
             {
@@ -76,7 +76,7 @@ public static class DbDapperAccessExtensions
             return (TResult)(object)set.Tables[0].Rows[0];
         }
 
-        if (builder.Mode == DbDirectAccessBuilder.EExecMode.DataTable)
+        if (builder.Mode == SqlDirectAccessBuilder.EExecMode.DataTable)
         {
             if (set.Tables.Count < 1)
             {
