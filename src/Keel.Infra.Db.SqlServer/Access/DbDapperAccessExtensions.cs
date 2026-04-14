@@ -16,7 +16,7 @@ public static class DbDapperAccessExtensions
     {
         await using var comm = await access.Provider.GetCommandAsync(cancellationToken);
 
-        var builder = new DbDirectAccessBuilder(comm.CastTo<SqlCommand>());
+        var builder = new DbDirectAccessBuilder(access, comm);
 
         config(builder);
 
@@ -49,7 +49,7 @@ public static class DbDapperAccessExtensions
     {
         await using var comm = await access.Provider.GetCommandAsync(cancellationToken);
 
-        var builder = new DbDirectAccessBuilder(comm.CastTo<SqlCommand>());
+        var builder = new DbDirectAccessBuilder(access, comm);
 
         config(builder);
 
