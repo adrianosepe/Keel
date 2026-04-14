@@ -14,7 +14,6 @@
 	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	</PackageReference>
 
-
 	<Reference Include="DevExtreme.AspNet.Core">
 	  <HintPath>.StaticDependency\DevExtreme.AspNet.Core.dll</HintPath>
 	</Reference>
