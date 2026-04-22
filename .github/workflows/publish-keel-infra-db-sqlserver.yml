@@ -6,6 +6,10 @@ on:
     tags:
       - "Keel.Infra.Db.SqlServer-v*"
 
+permissions:
+  contents: read
+  packages: write
+
 jobs:
   publish:
     uses: ./.github/workflows/publish-dotnet-package.yml
