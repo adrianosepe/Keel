@@ -1,0 +1,14 @@
+name: Publish Keel.Infra.Broker.RabbitMQ
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "Keel.Infra.Broker.RabbitMQ-v*"
+
+jobs:
+  publish:
+    uses: ./.github/workflows/publish-dotnet-package.yml
+    with:
+      project_path: src/Keel.Infra.Broker.RabbitMQ/Keel.Infra.Broker.RabbitMQ.csproj
+    secrets: inherit
