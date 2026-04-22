@@ -1,0 +1,14 @@
+name: Publish Keel.Infra.Db
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "Keel.Infra.Db-v*"
+
+jobs:
+  publish:
+    uses: ./.github/workflows/publish-dotnet-package.yml
+    with:
+      project_path: src/Keel.Infra.Db/Keel.Infra.Db.csproj
+    secrets: inherit

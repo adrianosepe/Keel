@@ -1,0 +1,14 @@
+name: Publish Keel.Infra.Db.SqlServer
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "Keel.Infra.Db.SqlServer-v*"
+
+jobs:
+  publish:
+    uses: ./.github/workflows/publish-dotnet-package.yml
+    with:
+      project_path: src/Keel.Infra.Db.SqlServer/Keel.Infra.Db.SqlServer.csproj
+    secrets: inherit
