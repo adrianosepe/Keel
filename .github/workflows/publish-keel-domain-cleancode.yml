@@ -1,0 +1,14 @@
+name: Publish Keel.Domain.CleanCode
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "Keel.Domain.CleanCode-v*"
+
+jobs:
+  publish:
+    uses: ./.github/workflows/publish-dotnet-package.yml
+    with:
+      project_path: src/Keel.Domain.CleanCode/Keel.Domain.CleanCode.csproj
+    secrets: inherit

@@ -4,10 +4,12 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Description>Web API support library for Keel.</Description>
+    <NoPackageAnalysis>true</NoPackageAnalysis>
   </PropertyGroup>
 
   <ItemGroup>
-	<None Include=".StaticDependency\DevExtreme.AspNet.Core.dll" />
+	<None Include=".StaticDependency\DevExtreme.AspNet.Core.dll" Pack="true" PackagePath="lib/$(TargetFramework)" Visible="false" />
 	<PackageReference Include="FluentValidation" Version="11.11.0" />
 	<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.2">
 	  <PrivateAssets>all</PrivateAssets>
@@ -16,6 +18,7 @@
 
 	<Reference Include="DevExtreme.AspNet.Core">
 	  <HintPath>.StaticDependency\DevExtreme.AspNet.Core.dll</HintPath>
+      <Private>true</Private>
 	</Reference>
 
 	<PackageReference Include="DevExtreme.AspNet.Data" Version="4.0.1" />

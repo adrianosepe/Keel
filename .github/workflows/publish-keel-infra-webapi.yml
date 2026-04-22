@@ -1,0 +1,14 @@
+name: Publish Keel.Infra.WebApi
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "Keel.Infra.WebApi-v*"
+
+jobs:
+  publish:
+    uses: ./.github/workflows/publish-dotnet-package.yml
+    with:
+      project_path: src/Keel.Infra.WebApi/Keel.Infra.WebApi.csproj
+    secrets: inherit
