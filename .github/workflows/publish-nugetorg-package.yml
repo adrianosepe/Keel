@@ -1,0 +1,45 @@
+name: Publish .NET Package to NuGet.org
+
+on:
+  workflow_call:
+    inputs:
+      project_path:
+        description: Path to the .csproj to pack and publish
+        required: true
+        type: string
+    secrets:
+      NUGET_API_KEY:
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 9.0.x
+
+      - name: Restore project
+        run: dotnet restore "${{ inputs.project_path }}"
+
+      - name: Build project
+        run: dotnet build "${{ inputs.project_path }}" --configuration Release --no-restore /p:ContinuousIntegrationBuild=true
+
+      - name: Pack project
+        run: dotnet pack "${{ inputs.project_path }}" --configuration Release --no-build --output "${{ github.workspace }}/artifacts"
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ github.workflow }}-${{ github.run_number }}-nugetorg
+          path: ${{ github.workspace }}/artifacts
+
+      - name: Publish package to NuGet.org
+        run: dotnet nuget push "${{ github.workspace }}/artifacts/*.nupkg" --source "https://api.nuget.org/v3/index.json" --api-key "${{ secrets.NUGET_API_KEY }}" --skip-duplicate
