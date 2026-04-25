@@ -8,7 +8,7 @@ Each project has its own GitHub Actions workflow for creating and publishing a N
 The same workflow run also publishes the package to NuGet.org.
 
 - Manual publish: run the workflow for the project in the `Actions` tab.
-- Publish by tag: create a tag using the format `<PackageId>-v<version>`.
+- Publish by tag: create a tag using the format `<PackageId>-v<version>`. The `<version>` value must match the package `Version` evaluated by MSBuild.
 
 Examples:
 
