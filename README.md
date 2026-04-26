@@ -12,9 +12,9 @@ The same workflow run also publishes the package to NuGet.org.
 
 Examples:
 
-- `Keel.Domain.CleanCode-v1.0.0`
-- `Keel.Infra.Db-v1.0.0`
-- `Keel.Infra.WebApi-v1.0.0`
+- `Keel.Domain.CleanCode-v1.1`
+- `Keel.Infra.Db-v1.1`
+- `Keel.Infra.WebApi-v1.1`
 
 Packages are published to:
 

@@ -1,13 +1,13 @@
 <Project>
   <PropertyGroup>
     <PackageId Condition="'$(PackageId)' == ''">$(MSBuildProjectName)</PackageId>
-    <Version Condition="'$(Version)' == ''">1.0.0</Version>
-    <Authors Condition="'$(Authors)' == ''">Adriano Sepe</Authors>
-    <Company Condition="'$(Company)' == ''">Evul Co</Company>
+    <Version Condition="'$(Version)' == ''">1.1</Version>
+    <Authors Condition="'$(Authors)' == ''">Evul</Authors>
+    <Company Condition="'$(Company)' == ''">Evul</Company>
     <Description Condition="'$(Description)' == ''">$(PackageId) library.</Description>
     <PackageTags Condition="'$(PackageTags)' == ''">keel;dotnet;library</PackageTags>
-    <PackageProjectUrl Condition="'$(PackageProjectUrl)' == ''">https://github.com/adrianosepe/Keel</PackageProjectUrl>
-    <RepositoryUrl Condition="'$(RepositoryUrl)' == ''">https://github.com/adrianosepe/Keel</RepositoryUrl>
+    <PackageProjectUrl Condition="'$(PackageProjectUrl)' == ''">https://github.com/Evul-Co/Keel</PackageProjectUrl>
+    <RepositoryUrl Condition="'$(RepositoryUrl)' == ''">https://github.com/Evul-Co/Keel</RepositoryUrl>
     <RepositoryType Condition="'$(RepositoryType)' == ''">git</RepositoryType>
     <PackageLicenseExpression Condition="'$(PackageLicenseExpression)' == ''">MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
